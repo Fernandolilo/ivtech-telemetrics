@@ -1,0 +1,59 @@
+# Ambiente virtual
+venv/
+.venv/
+env/
+ENV/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Extensões compiladas
+*.so
+*.pyd
+*.dll
+
+# Build
+build/
+dist/
+*.egg-info/
+
+# Logs
+*.log
+
+# Cobertura de testes
+.coverage
+.pytest_cache/
+htmlcov/
+
+# IDEs
+.vscode/
+.idea/
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+
+# Configurações locais
+.env
+.env.*
+
+# Banco de dados local
+*.db
+*.sqlite3
+
+# Arquivos temporários
+*.tmp
+*.bak
+
+# Cache
+.cache/
+
+# Arquivos de telemetria (caso existam)
+logs/
+data/
+exports/
+
+# Arquivos Bluetooth
+*.pcap
