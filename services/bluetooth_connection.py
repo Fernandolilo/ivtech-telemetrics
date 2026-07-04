@@ -1,41 +1,33 @@
+from bleak import BleakScanner
+from services.bluetooth_service import BluetoothService
 from models.base_connection import BaseConnection
-from services.enums.connection_type import ConnectionType
 
 class BluetoothConnection(BaseConnection):
-    def __init__(self, uuid):
+    def __init__(self, uuid="0000fff1-0000-1000-8000-00805f9b34fb"):
         self.uuid = uuid
-        self.client = None
-        
-    async def connect(self, address):
-        # Lógica específica do Bluetooth (Bleak)
-        print(f"Conectando BLE em {address} com UUID {self.uuid}")
-        
-    async def send(self, command):
-        # Lógica específica de envio BLE
-        pass
+        self.service = BluetoothService()
 
-    def disconnect(self):
-        pass
+    # 1. Implementação obrigatória do método 'send' exigido pela BaseConnection
+    async def send(self, cmd: str):
+        return await self.service.send(cmd)
 
-class SerialConnection(BaseConnection):
-    def __init__(self, port, baudrate=9600):
-        self.port = port
-        self.baudrate = baudrate
-        
-    async def connect(self, target_info=None):
-        print(f"Abrindo porta Serial {self.port}...")
-        
-    async def send(self, command):
-        # Lógica usando pyserial
-        pass
+    # 2. Implementação obrigatória do método 'disconnect'
+    async def disconnect(self):
+        if self.service.client:
+            await self.service.client.disconnect()
+            self.service.connected = False
 
-    def disconnect(self):
-        pass
+    # 3. Seu método de conexão que já tínhamos definido
+    async def connect(self, device_name):
+        return await self.service.find_and_connect_by_name([device_name])
     
-    def connection_factory(conn_type: ConnectionType, config: dict):
-            if conn_type == ConnectionType.BLUETOOTH:
-                return BluetoothConnection(config.get("uuid"))
-            elif conn_type == ConnectionType.SERIAL:
-                return SerialConnection(config.get("port"), config.get("baudrate"))
-            else:
-                raise ValueError("Tipo de conexão não suportado!")
+    @staticmethod
+    async def listar_dispositivos():
+        print("\nEscaneando dispositivos...")
+        devices = await BleakScanner.discover(timeout=5)
+        dispositivos = [d for d in devices if d.name]
+        
+        for i, d in enumerate(dispositivos, start=1):
+            print(f"{i} - {d.name}")
+        
+        return dispositivos

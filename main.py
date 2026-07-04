@@ -1,33 +1,21 @@
-import asyncio
+import uvicorn
+from fastapi import FastAPI
+import app as app_  # Importa o roteador do seu app.py
+from services.connection_manager import manager
+from services.config_manager import load_config
 
-from services.enums.connection_type import ConnectionType
+app = FastAPI()
 
-def selecionar_conexao():
-    print("\n--- Selecione o tipo de equipamento ---")
-    for i, tipo in enumerate(ConnectionType, start=1):
-        print(f"{i} - {tipo.name}")
-    
-    while True:
-        try:
-            escolha = int(input("\nDigite o número da opção desejada: "))
-            return list(ConnectionType)[escolha - 1]
-        except (ValueError, IndexError):
-            print("Opção inválida. Tente novamente.")
-            
-async def main():
-    tipo = selecionar_conexao()
-    
-    # Instanciação direta
-    if tipo == ConnectionType.BLUETOOTH:
-        print("Conexao Bluetooth")
-    elif tipo == ConnectionType.SERIAL:
-         print("Conexao Serial")
-    else:
-        print("Tipo de conexão não suportado.")
-        return
+# Registra as rotas que estão no seu app.py (Controller)
+app.include_router(app_.router)
 
-    
-   
+@app.on_event("startup")
+async def startup_event():
+    # Inicialização automática conforme você queria
+    config = load_config()
+    if config:
+        print(f"Iniciando serviço... Conectando em: {config['target_name']}")
+        await manager.start(config['target_name'])
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    uvicorn.run(app, host="0.0.0.0", port=8000)

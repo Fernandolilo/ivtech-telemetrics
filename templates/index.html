@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HItech - Unidade Veicular</title>
+    <!-- Tailwind via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold mb-6 text-blue-400">HItech - Dashboard Veicular</h1>
+        
+        <!-- Indicador de Status adicionado ao padrão Itech -->
+        <div class="mb-6">
+            <span id="status-badge" class="px-3 py-1 rounded-full text-sm font-semibold bg-gray-700">
+                Verificando conexão...
+            </span>
+        </div>
+
+        <div id="data-container" class="grid gap-4">
+            <!-- Os cards serão injetados aqui -->
+        </div>
+    </div>
+
+    <script>
+        async function updateDashboard() {
+            try {
+                // Status da conexão
+                const resStatus = await fetch('/status');
+                const dataStatus = await resStatus.json();
+                const badge = document.getElementById('status-badge');
+                
+                if (dataStatus.connected) {
+                    badge.className = 'px-3 py-1 rounded-full text-sm font-semibold bg-green-900 text-green-300';
+                    badge.innerText = 'Conectado ao OBDII';
+                } else {
+                    badge.className = 'px-3 py-1 rounded-full text-sm font-semibold bg-red-900 text-red-300';
+                    badge.innerText = 'Unidade Veicular desconectado';
+                }
+
+                // Opcional: Aqui você chamaria sua telemetria no futuro
+                // const resData = await fetch('/api/telemetria');
+                // ... processamento dos dados ...
+                
+            } catch (error) {
+                console.error("Erro na atualização:", error);
+            }
+        }
+
+        // Atualiza a cada 2 segundos conforme o padrão Itech
+        setInterval(updateDashboard, 2000);
+        updateDashboard();
+    </script>
+</body>
+</html>
