@@ -4,14 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HItech - Unidade Veicular</title>
-    <!-- Tailwind via CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-900 text-white p-8">
     <div class="max-w-4xl mx-auto">
-        <h1 class="text-3xl font-bold mb-6 text-blue-400">HItech - Dashboard Veicular</h1>
+        <!-- Cabeçalho com o novo botão de alternância -->
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl font-bold text-blue-400">HItech - Dashboard Veicular</h1>
+            <button onclick="toggleReconnect()" class="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded text-sm transition">
+                Configurar Dispositivo
+            </button>
+        </div>
         
-        <!-- Indicador de Status adicionado ao padrão Itech -->
         <div class="mb-6">
             <span id="status-badge" class="px-3 py-1 rounded-full text-sm font-semibold bg-gray-700">
                 Verificando conexão...
@@ -23,10 +27,25 @@
         </div>
     </div>
 
+    <!-- Seção de Reconexão (Escondida por padrão) -->
+    <div id="reconnect-section" class="max-w-4xl mx-auto mt-8 p-4 bg-gray-800 rounded border border-gray-700 hidden">
+        <h2 class="text-xl mb-4 font-semibold text-blue-400">Trocar Dispositivo</h2>
+        <input type="text" id="target-input" placeholder="Ex: OBDII" class="p-2 text-black rounded w-64">
+        <button id="connect-btn" onclick="changeDevice()" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded transition">
+            Conectar
+        </button>
+        <p id="status-msg" class="mt-2 text-sm text-gray-400"></p>
+    </div>
+
     <script>
+        // Função para mostrar/esconder a seção
+        function toggleReconnect() {
+            const section = document.getElementById('reconnect-section');
+            section.classList.toggle('hidden');
+        }
+
         async function updateDashboard() {
             try {
-                // Status da conexão
                 const resStatus = await fetch('/status');
                 const dataStatus = await resStatus.json();
                 const badge = document.getElementById('status-badge');
@@ -38,19 +57,43 @@
                     badge.className = 'px-3 py-1 rounded-full text-sm font-semibold bg-red-900 text-red-300';
                     badge.innerText = 'Unidade Veicular desconectado';
                 }
-
-                // Opcional: Aqui você chamaria sua telemetria no futuro
-                // const resData = await fetch('/api/telemetria');
-                // ... processamento dos dados ...
-                
             } catch (error) {
                 console.error("Erro na atualização:", error);
             }
         }
 
-        // Atualiza a cada 2 segundos conforme o padrão Itech
         setInterval(updateDashboard, 2000);
         updateDashboard();
+
+        async function changeDevice() {
+            const btn = document.getElementById('connect-btn');
+            const msg = document.getElementById('status-msg');
+            const target = document.getElementById('target-input').value;
+
+            if (!target) return alert("Digite um nome de dispositivo!");
+
+            btn.disabled = true;
+            btn.innerText = "Escaneando...";
+            msg.innerText = "Isso pode levar alguns segundos...";
+
+            try {
+                const response = await fetch(`/reconnect?target_name=${target}`, { method: 'POST' });
+                
+                if (response.ok) {
+                    msg.innerText = "Sucesso! Conectado.";
+                    msg.className = "mt-2 text-sm text-green-400";
+                    setTimeout(toggleReconnect, 2000); // Fecha automaticamente após sucesso
+                } else {
+                    msg.innerText = "Erro: Dispositivo não encontrado.";
+                    msg.className = "mt-2 text-sm text-red-400";
+                }
+            } catch (e) {
+                msg.innerText = "Erro de comunicação com o servidor.";
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Conectar";
+            }
+        }
     </script>
 </body>
 </html>

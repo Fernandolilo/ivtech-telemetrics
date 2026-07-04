@@ -27,3 +27,18 @@ async def connect(target_name: str):
 @router.get("/status")
 async def get_status():
     return {"connected": manager.is_initialized}
+
+@router.post("/reconnect")
+async def reconnect(target_name: str):
+    # 1. Encerra a conexão atual de forma segura
+    await manager.stop()
+    
+    # 2. Inicia o processo de conexão no novo alvo
+    # Aqui o seu manager.start internamente deve chamar o scanner
+    sucesso = await manager.start(target_name)
+    
+    if not sucesso:
+        # Retorna erro para o front saber que falhou
+        raise HTTPException(status_code=400, detail=f"Não foi possível conectar a {target_name}")
+        
+    return {"status": "success", "message": f"Conectado ao {target_name}"}
